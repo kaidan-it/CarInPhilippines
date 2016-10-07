@@ -62,53 +62,20 @@ namespace Cars
                 }
             };
     }
-
-    public interface ICalculator
-    {
-        decimal ImportTax(int orginalprice, int imprortTaxRate);
-
-        decimal VAT(int originalprice, decimal importTax);
-    }
-
-    public interface IPay
-    {
-        decimal CalculatePrice(Countries countries, CapacityInCcm capacityInCcm, int originalPrice);
-    }
 }
 
 namespace CarInPhilippines
 {
     using Cars;
-
-    public class CarInPhilippinesCalcualtor : ICalculator
+    public class CarInPhilippinesPayment 
     {
         private readonly decimal _vatRate = new decimal(0.12);
-
-        public decimal ImportTax(int orginprice, int imprortTaxRate)
-        {
-            return orginprice * imprortTaxRate / 100;
-        }
-
-        public decimal VAT(int originprice, decimal importTax)
-        {
-            return (originprice + importTax) * _vatRate;
-        }
-    }
-
-    public class CarInPhilippinesPayment : IPay
-    {
-        private readonly ICalculator _calculator;
-
-        public CarInPhilippinesPayment(ICalculator calculator)
-        {
-            _calculator = calculator;
-        }
-
+       
         public decimal CalculatePrice(Countries countries, CapacityInCcm capacityInCcm, int originalPrice)
         {
             var taxrate = TaxHelper.TaxImportRate[countries][capacityInCcm];
-            var importTax = _calculator.ImportTax(originalPrice, taxrate);
-            var vat = _calculator.VAT(originalPrice, importTax);
+            var importTax = originalPrice * taxrate / 100;
+            var vat = (originalPrice + importTax)*_vatRate;
             return originalPrice + importTax + vat;
         }
     }
@@ -117,8 +84,8 @@ namespace CarInPhilippines
     {
         private static void Main(string[] args)
         {
-            var calculator = new CarInPhilippinesCalcualtor();
-            var payment = new CarInPhilippinesPayment(calculator);
+       
+            var payment = new CarInPhilippinesPayment();
             var pesos = (int)ExchangeRate.Usd;
             Console.WriteLine("Benz G65 from Germany (Europe county), 6.0L,  original price $217,900 USD");
             Console.WriteLine("Price:{0} Pesos", pesos * payment.CalculatePrice(Countries.Europe, CapacityInCcm.LessThanFive, 217900));
